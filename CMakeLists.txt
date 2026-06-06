@@ -17,7 +17,7 @@
 #
 
 cmake_minimum_required(VERSION 3.12)
-project(skialib VERSION 20251012 LANGUAGES CXX)
+project(skia-friction VERSION 1.0.5 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -61,12 +61,14 @@ option(SKIA_SYNC_EXTERNAL "Sync skia external software" OFF)
 option(LINUX_DEPLOY "Linux Deploy (only for Friction SDK)" OFF)
 option(MAC_DEPLOY "Mac Deploy (only for Friction SDK)" OFF)
 
+option(INSTALL_DOCS "Install documentation" ON)
+
 if(UNIX AND NOT APPLE)
     option(SKIA_USE_EGL "Use EGL in skia" ON)
 endif()
 
 set(SKIA_SRC "${CMAKE_CURRENT_SOURCE_DIR}")
-set(SKIA_BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}")
+set(SKIA_BUILD_DIR "${CMAKE_CURRENT_BINARY_DIR}/skia-build")
 
 if(APPLE)
     set(SKIA_USE_SYSTEM_LIBS OFF)
@@ -185,15 +187,27 @@ ExternalProject_Add(
 
 add_dependencies(skialib gn)
 
-if(NOT ${SKIA_STATIC})
+if(NOT SKIA_STATIC)
     if(UNIX AND NOT APPLE)
         include(GNUInstallDirs)
         install(
             FILES
             ${SKIA_BUILD_DIR}/libskia-friction.so
+            ${SKIA_BUILD_DIR}/libskia-friction.so.${PROJECT_VERSION_MAJOR}
+            ${SKIA_BUILD_DIR}/libskia-friction.so.${PROJECT_VERSION}
             DESTINATION
             ${CMAKE_INSTALL_LIBDIR}
         )
+        if(INSTALL_DOCS)
+            install(
+                FILES
+                ${CMAKE_CURRENT_SOURCE_DIR}/README.md
+                ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE
+                ${CMAKE_CURRENT_SOURCE_DIR}/RELEASE_NOTES.txt
+                DESTINATION
+                "${CMAKE_INSTALL_DOCDIR}-${PROJECT_VERSION}"
+            )
+        endif()
     endif()
 endif()
 
