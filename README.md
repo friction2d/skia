@@ -1,12 +1,8 @@
 # Skia for Friction
 
-Fork of skia for use with Friction.
-
-Skia is a complete 2D graphic library for drawing Text, Geometries, and Images.
+Fork of skia for use with [Friction](https://friction.graphics/). This is a complete 2D graphic library for drawing Text, Geometries, and Images.
 
 ## Linux/macOS
-
-Note that Friction includes skia and will build it for you.
 
 ### Requirements
 
@@ -22,16 +18,18 @@ Note that Friction includes skia and will build it for you.
 * libwebp
 * zlib
 
-### Options
+### Options *(default values are shown)*
 
-* `-DSKIA_USE_SYSTEM_LIBS=OFF`
-* `-DSKIA_SYNC_EXTERNAL=ON` *(not needed if using source tarball)*
-
-Will build all dependencies instead of using system libraries.
+* `-DSKIA_STATIC=OFF` *(build a static .a library, not available for Windows)*
+* `-DSKIA_USE_SYSTEM_LIBS=ON` *(Use system libraries where possible)*
+* `-DSKIA_SYNC_EXTERNAL=OFF` *(Get third-party sources, if using git and not using system libraries)*
+* `-DINSTALL_DOCS=ON` *(Include README and LICENSE during install)*
+* `-DSKIA_USE_EGL=ON` *(Use EGL on Linux/BSD, GLX is deprecated)*
 
 ### Build and install
 
 ```
+git submodule update -i --recursive
 mkdir build && cd build
 cmake -G Ninja \
 -DCMAKE_INSTALL_PREFIX=/usr \
@@ -44,17 +42,29 @@ cmake --build .
 cmake --install .
 ```
 
-This will install `libskia-friction.so` to defined install path. Add optional `--prefix=/some/path` to install to a different location.
+Add optional `--prefix=/some/path` to install to a different location.
 
-**Note:** Install option only available on Linux.
+```
+├── lib
+│   └── x86_64-linux-gnu
+│       ├── libskia-friction.so -> libskia-friction.so.1.0.5
+│       ├── libskia-friction.so.1 -> libskia-friction.so.1.0.5
+│       └── libskia-friction.so.1.0.5
+└── share
+    └── doc
+        └── skia-friction-1.0.5
+            ├── LICENSE
+            └── README.md
+```
 
 ## Windows
 
 ### Requirements
 
-* CMake, Python and Ninja in PATH
-* LLVM (Installed to Program Files, v15 recommended)
+* CMake, Python 3 and Ninja in PATH
+* LLVM (Installed to Program Files, v15+ recommended)
 * Visual Studio (Build Tools) 2017
+  * To support 2022+ we need to break compat with 2017, since Friction is using 2017 we will not upgrade yet
 
 ### Build
 
