@@ -23,7 +23,8 @@ Fork of skia for use with [Friction](https://friction.graphics/). This is a comp
 * `-DSKIA_STATIC=OFF` *(build a static .a library, not available for Windows)*
 * `-DSKIA_USE_SYSTEM_LIBS=ON` *(Use system libraries where possible)*
 * `-DSKIA_SYNC_EXTERNAL=OFF` *(Get third-party sources, if using git and not using system libraries)*
-* `-DINSTALL_DOCS=ON` *(Include README and LICENSE during install)*
+* `-DINSTALL_DOCS=ON` *(Add README and LICENSE during install)*
+* `-DINSTALL_HEADERS=ON` *(Add headers during install)*
 * `-DSKIA_USE_EGL=ON` *(Use EGL on Linux/BSD, GLX is deprecated)*
 
 ### Build and install
@@ -45,14 +46,16 @@ cmake --install .
 Add optional `--prefix=/some/path` to install to a different location.
 
 ```
+├── include
+│   └── skia-friction/...
 ├── lib
 │   └── x86_64-linux-gnu
-│       ├── libskia-friction.so -> libskia-friction.so.1.0.5
-│       ├── libskia-friction.so.1 -> libskia-friction.so.1.0.5
-│       └── libskia-friction.so.1.0.5
+│       ├── libskia-friction.so -> libskia-friction.so.1.0.x
+│       ├── libskia-friction.so.1 -> libskia-friction.so.1.0.x
+│       └── libskia-friction.so.1.0.x
 └── share
     └── doc
-        └── skia-friction-1.0.5
+        └── skia-friction-1.0.x
             ├── LICENSE
             └── README.md
 ```
