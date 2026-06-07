@@ -1,6 +1,6 @@
 # Skia for Friction
 
-Fork of skia for use with [Friction](https://friction.graphics/). This is a complete 2D graphic library for drawing Text, Geometries, and Images.
+Fork of [Skia](https://skia.org) for use with [Friction](https://friction.graphics). This is a complete 2D graphic library for drawing Text, Geometries, and Images.
 
 ## Linux/macOS
 
@@ -50,6 +50,10 @@ Add optional `--prefix=/some/path` to install to a different location.
 │   └── skia-friction/...
 ├── lib
 │   └── x86_64-linux-gnu
+│       ├── cmake
+│       │   └── SkiaFriction
+│       │       ├── SkiaFrictionConfig.cmake
+│       │       └── SkiaFrictionConfigVersion.cmake
 │       ├── libskia-friction.so -> libskia-friction.so.1.0.x
 │       ├── libskia-friction.so.1 -> libskia-friction.so.1.0.x
 │       └── libskia-friction.so.1.0.x

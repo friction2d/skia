@@ -47,15 +47,15 @@ if(NOT NINJA_EXECUTABLE)
     message(FATAL_ERROR "Ninja executable not found.")
 endif()
 
-option(SKIA_STATIC "Build static skia library for Linux/macOS" OFF)
+option(SKIA_STATIC "Build static library for Linux/macOS (mostly for Friction SDK)" OFF)
 option(SKIA_USE_SYSTEM_LIBS "Use system libraries for skia" ON)
-option(SKIA_SYNC_EXTERNAL "Sync skia external software" OFF)
+option(SKIA_SYNC_EXTERNAL "Sync skia external software (mostly for Friction SDK)" OFF)
 
 option(LINUX_DEPLOY "Linux Deploy (only for Friction SDK)" OFF)
 option(MAC_DEPLOY "Mac Deploy (only for Friction SDK)" OFF)
 
 option(INSTALL_DOCS "Install documentation" ON)
-option(INSTALL_HEADERS "Install C++ header for development" ON)
+option(INSTALL_HEADERS "Install development headers" ON)
 
 if(UNIX AND NOT APPLE)
     option(SKIA_USE_EGL "Use EGL in skia" ON)
@@ -202,6 +202,7 @@ if(NOT SKIA_STATIC)
             )
         endif()
         if(INSTALL_HEADERS)
+            # TODO: some headers might be missing for macOS/Windows, only tested on Linux
             set(HEADER_DEST_ROOT "${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}")
             install(FILES
                 include/config/SkUserConfig.h
@@ -360,6 +361,35 @@ if(NOT SKIA_STATIC)
     endif()
 endif()
 
+# TODO: fix this workaround
 if(WIN32)
     add_custom_command(TARGET skialib POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${SKIA_BUILD_DIR}/skia.dll.lib ${SKIA_BUILD_DIR}/skia.lib)
 endif()
+
+# TODO: needs testing
+# find_package(SkiaFriction REQUIRED)
+# target_link_libraries(app PRIVATE SkiaFriction::SkiaFriction)
+
+include(CMakePackageConfigHelpers)
+
+set(CMAKECONFIG_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}/cmake/SkiaFriction")
+
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/SkiaFrictionConfigVersion.cmake"
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
+
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/SkiaFrictionConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/SkiaFrictionConfig.cmake"
+    @ONLY
+)
+
+install(
+    FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/SkiaFrictionConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/SkiaFrictionConfigVersion.cmake"
+    DESTINATION
+    "${CMAKECONFIG_INSTALL_DIR}"
+)

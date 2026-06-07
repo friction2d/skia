@@ -1,0 +1,38 @@
+# SkiaFrictionConfig.cmake
+
+get_filename_component(SkiaFriction_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+get_filename_component(SkiaFriction_INSTALL_PREFIX "${SkiaFriction_CMAKE_DIR}/../../.." ABSOLUTE)
+
+set(SkiaFriction_INCLUDE_DIRS "${SkiaFriction_INSTALL_PREFIX}/@CMAKE_INSTALL_INCLUDEDIR@/skia-friction")
+
+if(APPLE)
+    set(SkiaFriction_LIBRARIES "${SkiaFriction_INSTALL_PREFIX}/@CMAKE_INSTALL_LIBDIR@/libskia-friction.dylib")
+elseif(WIN32)
+    if(EXISTS "${SkiaFriction_INSTALL_PREFIX}/@CMAKE_INSTALL_LIBDIR@/skia.lib")
+        set(SkiaFriction_LIBRARIES "${SkiaFriction_INSTALL_PREFIX}/@CMAKE_INSTALL_LIBDIR@/skia.lib")
+    else()
+        set(SkiaFriction_LIBRARIES "${SkiaFriction_INSTALL_PREFIX}/@CMAKE_INSTALL_LIBDIR@/skia-friction.lib")
+    endif()
+else()
+    set(SkiaFriction_LIBRARIES "${SkiaFriction_INSTALL_PREFIX}/@CMAKE_INSTALL_LIBDIR@/libskia-friction.so")
+endif()
+
+if(NOT TARGET SkiaFriction::SkiaFriction)
+    add_library(SkiaFriction::SkiaFriction SHARED IMPORTED)
+    set_target_properties(SkiaFriction::SkiaFriction PROPERTIES
+        INTERFACE_INCLUDE_DIRECTORIES "${SkiaFriction_INCLUDE_DIRS}"
+        IMPORTED_LOCATION "${SkiaFriction_LIBRARIES}"
+    )
+    if(APPLE)
+        set_property(TARGET SkiaFriction::SkiaFriction APPEND PROPERTY 
+            INTERFACE_LINK_LIBRARIES "z"
+        )
+    elseif(WIN32)
+        set_property(TARGET SkiaFriction::SkiaFriction APPEND PROPERTY 
+            INTERFACE_LINK_LIBRARIES "user32;opengl32"
+        )
+        set_property(TARGET SkiaFriction::SkiaFriction APPEND PROPERTY 
+            INTERFACE_COMPILE_DEFINITIONS "SKIA_DLL"
+        )
+    endif()
+endif()
