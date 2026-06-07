@@ -1,19 +1,12 @@
 #
-# Friction - https://friction.graphics
+# Skia for Friction
 #
+# https://friction.graphics
+# https://github.com/friction2d/skia
+# https://codeberg.org/friction/skia
+#
+# SPDX-License-Identifier: BSD-3-Clause
 # Copyright (c) Ole-André Rodlie and contributors
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, version 3.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 
 cmake_minimum_required(VERSION 3.12)
@@ -192,9 +185,9 @@ if(NOT SKIA_STATIC)
         include(GNUInstallDirs)
         install(
             FILES
-            ${SKIA_BUILD_DIR}/libskia-friction.so
-            ${SKIA_BUILD_DIR}/libskia-friction.so.${PROJECT_VERSION_MAJOR}
-            ${SKIA_BUILD_DIR}/libskia-friction.so.${PROJECT_VERSION}
+            ${SKIA_BUILD_DIR}/lib${PROJECT_NAME}.so
+            ${SKIA_BUILD_DIR}/lib${PROJECT_NAME}.so.${PROJECT_VERSION_MAJOR}
+            ${SKIA_BUILD_DIR}/lib${PROJECT_NAME}.so.${PROJECT_VERSION}
             DESTINATION
             ${CMAKE_INSTALL_LIBDIR}
         )
@@ -203,7 +196,6 @@ if(NOT SKIA_STATIC)
                 FILES
                 ${CMAKE_CURRENT_SOURCE_DIR}/README.md
                 ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE
-                ${CMAKE_CURRENT_SOURCE_DIR}/RELEASE_NOTES.txt
                 DESTINATION
                 "${CMAKE_INSTALL_DOCDIR}-${PROJECT_VERSION}"
             )
