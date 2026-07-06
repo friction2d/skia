@@ -80,7 +80,7 @@ if(WIN32)
     if(${SKIA_SYNC_EXTERNAL})
         set(SKIA_UPDATE_CMD ${PYTHON_EXECUTABLE} "tools\\git-sync-deps")
     else()
-        set(SKIA_UPDATE_CMD :)
+        set(SKIA_UPDATE_CMD "")
     endif()
     set(SKIA_ARGS "target_os=\"windows\" host_os=\"win\" current_os=\"win\" target_cpu=\"x64\" is_component_build=true")
     set(SKIA_ARGS "${SKIA_ARGS} clang_win=\"C:\\Program Files\\LLVM\" cc=\"clang-cl\" cxx=\"clang-cl\"")
@@ -148,11 +148,11 @@ ExternalProject_Add(
     gn
     SOURCE_DIR ${SKIA_SRC}/gn-src
     BINARY_DIR ${SKIA_BUILD_DIR}/gn
-    DOWNLOAD_COMMAND :
-    UPDATE_COMMAND :
+    DOWNLOAD_COMMAND ""
+    UPDATE_COMMAND ""
     CONFIGURE_COMMAND ${PYTHON_EXECUTABLE} ${SKIA_SRC}/gn-src/build/gen.py --out-path ${SKIA_BUILD_DIR}/gn
     BUILD_COMMAND ${NINJA_EXECUTABLE} -j${N} -C ${SKIA_BUILD_DIR}/gn
-    INSTALL_COMMAND :
+    INSTALL_COMMAND ""
     USES_TERMINAL_UPDATE true
     USES_TERMINAL_CONFIGURE true
     USES_TERMINAL_BUILD true
@@ -168,12 +168,12 @@ ExternalProject_Add(
     skialib
     SOURCE_DIR ${SKIA_SRC}
     BINARY_DIR ${SKIA_BUILD_DIR}
-    DOWNLOAD_COMMAND :
+    DOWNLOAD_COMMAND ""
     UPDATE_COMMAND ${SKIA_UPDATE_CMD}
-    PATCH_COMMAND :
+    PATCH_COMMAND ""
     CONFIGURE_COMMAND ${GN_BIN_PATH} gen --root=${SKIA_SRC} ${SKIA_BUILD_DIR} "--args=${SKIA_ARGS}" ${SKIA_ARGS_EXTRA}
     BUILD_COMMAND ${SKIA_BUILD_CMD}
-    INSTALL_COMMAND :
+    INSTALL_COMMAND ""
     USES_TERMINAL_UPDATE true
     USES_TERMINAL_CONFIGURE true
     USES_TERMINAL_BUILD true
