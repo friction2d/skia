@@ -47,15 +47,14 @@ if(NOT NINJA_EXECUTABLE)
     message(FATAL_ERROR "Ninja executable not found.")
 endif()
 
-option(SKIA_STATIC "Build static library for Linux/macOS (mostly for Friction SDK)" OFF)
 option(SKIA_USE_SYSTEM_LIBS "Use system libraries for skia" ON)
 option(SKIA_SYNC_EXTERNAL "Sync skia external software (mostly for Friction SDK)" OFF)
 
 option(LINUX_DEPLOY "Linux Deploy (only for Friction SDK)" OFF)
 option(MAC_DEPLOY "Mac Deploy (only for Friction SDK)" OFF)
 
-option(INSTALL_DOCS "Install documentation" ON)
-option(INSTALL_HEADERS "Install development headers" ON)
+option(INSTALL_DOCS "Install documentation" OFF)
+option(INSTALL_HEADERS "Install development headers" OFF)
 
 if(UNIX AND NOT APPLE)
     option(SKIA_USE_EGL "Use EGL in skia" ON)
@@ -97,11 +96,7 @@ else()
         endif()
     endif()
     set(SKIA_ARGS "ar=\"${CMAKE_AR}\" cc=\"${CMAKE_C_COMPILER}\" cxx=\"${CMAKE_CXX_COMPILER}\"")
-    if(${SKIA_STATIC})
-        set(SKIA_ARGS "${SKIA_ARGS} is_component_build=false")
-    else()
-        set(SKIA_ARGS "${SKIA_ARGS} is_component_build=true")
-    endif()
+    set(SKIA_ARGS "${SKIA_ARGS} is_component_build=true")
     if(UNIX AND NOT APPLE)
         if(${SKIA_USE_EGL})
             set(SKIA_ARGS "${SKIA_ARGS} skia_use_egl=true")
@@ -386,10 +381,12 @@ configure_file(
     @ONLY
 )
 
-install(
-    FILES
-    "${CMAKE_CURRENT_BINARY_DIR}/SkiaFrictionConfig.cmake"
-    "${CMAKE_CURRENT_BINARY_DIR}/SkiaFrictionConfigVersion.cmake"
-    DESTINATION
-    "${CMAKECONFIG_INSTALL_DIR}"
-)
+if(INSTALL_HEADERS)
+    install(
+        FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/SkiaFrictionConfig.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/SkiaFrictionConfigVersion.cmake"
+        DESTINATION
+        "${CMAKECONFIG_INSTALL_DIR}"
+    )
+endif()
