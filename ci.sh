@@ -25,5 +25,6 @@ fi
 
 mkdir ${CWD}/build
 cd ${CWD}/build
-cmake -G Ninja -DSKIA_USE_SYSTEM_LIBS=OFF -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang ..
+cmake -G Ninja -DINSTALL_DOCS=ON -DINSTALL_HEADERS=ON -DSKIA_USE_SYSTEM_LIBS=OFF -DCMAKE_INSTALL_PREFIX=/usr -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_C_COMPILER=clang ..
 cmake --build .
+cmake --install . --prefix=`pwd`/install

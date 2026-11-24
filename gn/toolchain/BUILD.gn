@@ -147,9 +147,9 @@ toolchain("msvc") {
   }
 
   tool("solink") {
-    dllname = "{{output_dir}}/{{target_output_name}}{{output_extension}}"
-    libname = "${dllname}.lib"
-    pdbname = "${dllname}.pdb"
+    dllname = "{{output_dir}}/{{target_output_name}}-friction{{output_extension}}"
+    libname = "{{output_dir}}/{{target_output_name}}-friction.lib"
+    pdbname = "{{output_dir}}/{{target_output_name}}-friction.pdb"
     rspfile = "${dllname}.rsp"
 
     command = "$env_setup $link /nologo /IMPLIB:$libname /DLL /OUT:$dllname /PDB:$pdbname @$rspfile"
@@ -277,16 +277,19 @@ template("gcc_like_toolchain") {
     }
 
     tool("solink") {
-      so_version = "1.0.5"
+      so_version = "1.0.6"
+      so_minor = "1.0"
       so_major = "1"
 
       if (is_mac || is_ios) {
         soname = "{{target_output_name}}-friction.$so_major{{output_extension}}"
+        minorname = "{{target_output_name}}-friction.$so_minor{{output_extension}}"
         realname = "{{target_output_name}}-friction.$so_version{{output_extension}}"
         linkname = "{{target_output_name}}-friction{{output_extension}}"
         rpath = "-Wl,-install_name,@rpath/$soname"
       } else {
         soname = "{{target_output_name}}-friction{{output_extension}}.$so_major"
+        minorname = "{{target_output_name}}-friction{{output_extension}}.$so_minor"
         realname = "{{target_output_name}}-friction{{output_extension}}.$so_version"
         linkname = "{{target_output_name}}-friction{{output_extension}}"
         rpath = "-Wl,-soname,$soname"
@@ -308,18 +311,15 @@ template("gcc_like_toolchain") {
         _end_group = ""
       }
 
-      if (is_mac || is_ios) {
-        command = "$cxx -shared {{ldflags}} $_start_group @$rspfile {{solibs}} $_end_group {{libs}} $rpath -o {{root_out_dir}}/$realname && ln -sf $realname {{root_out_dir}}/$linkname"
-      } else {
-        command = "$cxx -shared {{ldflags}} $_start_group @$rspfile {{solibs}} $_end_group {{libs}} $rpath -o {{root_out_dir}}/$realname && ln -sf $realname {{root_out_dir}}/$soname && ln -sf $realname {{root_out_dir}}/$linkname"
-      }
+      command = "$cxx -shared {{ldflags}} $_start_group @$rspfile {{solibs}} $_end_group {{libs}} $rpath -o {{root_out_dir}}/$realname && ln -sf $realname {{root_out_dir}}/$soname && ln -sf $realname {{root_out_dir}}/$minorname && ln -sf $realname {{root_out_dir}}/$linkname"
 
       outputs = [
         "{{root_out_dir}}/$realname",
         "{{root_out_dir}}/$soname",
+        "{{root_out_dir}}/$minorname",
         "{{root_out_dir}}/$linkname",
       ]
-      
+
       output_prefix = "lib"
       default_output_extension = ".so"
       if (is_mac) {

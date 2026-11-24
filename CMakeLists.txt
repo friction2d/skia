@@ -10,7 +10,7 @@
 #
 
 cmake_minimum_required(VERSION 3.12)
-project(skia-friction VERSION 1.0.5 LANGUAGES CXX)
+project(skia-friction VERSION 1.0.6 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -111,8 +111,13 @@ else()
         set(SKIA_UPDATE_CMD ${PYTHON_EXECUTABLE} "tools/git-sync-deps")
         set(SKIA_ARGS "${SKIA_ARGS} target_cpu=\"${CMAKE_HOST_SYSTEM_PROCESSOR}\"")
         if(${MAC_DEPLOY})
-            set(SKIA_ARGS "${SKIA_ARGS} extra_cflags=[\"-Wno-error\", \"-Wno-psabi\", \"-mmacosx-version-min=11.0\"]")
-            set(SKIA_ARGS "${SKIA_ARGS} extra_cflags_cc=[\"-frtti\", \"-mmacosx-version-min=11.0\"]")
+            if(CMAKE_OSX_DEPLOYMENT_TARGET)
+                set(SKIA_MACOS_MIN_VERSION "${CMAKE_OSX_DEPLOYMENT_TARGET}")
+            else()
+                set(SKIA_MACOS_MIN_VERSION "12.0")
+            endif()
+            set(SKIA_ARGS "${SKIA_ARGS} extra_cflags=[\"-Wno-error\", \"-Wno-psabi\", \"-mmacosx-version-min=${SKIA_MACOS_MIN_VERSION}\"]")
+            set(SKIA_ARGS "${SKIA_ARGS} extra_cflags_cc=[\"-frtti\", \"-mmacosx-version-min=${SKIA_MACOS_MIN_VERSION}\"]")
         else()
             set(SKIA_ARGS "${SKIA_ARGS} extra_cflags=[\"-Wno-error\", \"-Wno-psabi\"]")
             set(SKIA_ARGS "${SKIA_ARGS} extra_cflags_cc=[\"-frtti\"]")
@@ -176,189 +181,208 @@ ExternalProject_Add(
 
 add_dependencies(skialib gn)
 
+include(GNUInstallDirs)
 if(NOT SKIA_STATIC)
-    if(UNIX AND NOT APPLE)
-        include(GNUInstallDirs)
+    if(APPLE)
+        install(
+            FILES
+            ${SKIA_BUILD_DIR}/lib${PROJECT_NAME}.dylib
+            ${SKIA_BUILD_DIR}/lib${PROJECT_NAME}.${PROJECT_VERSION_MAJOR}.dylib
+            ${SKIA_BUILD_DIR}/lib${PROJECT_NAME}.${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.dylib
+            ${SKIA_BUILD_DIR}/lib${PROJECT_NAME}.${PROJECT_VERSION}.dylib
+            DESTINATION
+            ${CMAKE_INSTALL_LIBDIR}
+        )
+    elseif(WIN32)
+        install(
+            FILES
+            ${SKIA_BUILD_DIR}/${PROJECT_NAME}.dll
+            DESTINATION
+            ${CMAKE_INSTALL_BINDIR}
+        )
+        install(
+            FILES
+            ${SKIA_BUILD_DIR}/${PROJECT_NAME}.lib
+            DESTINATION
+            ${CMAKE_INSTALL_LIBDIR}
+        )
+    else()
         install(
             FILES
             ${SKIA_BUILD_DIR}/lib${PROJECT_NAME}.so
             ${SKIA_BUILD_DIR}/lib${PROJECT_NAME}.so.${PROJECT_VERSION_MAJOR}
+            ${SKIA_BUILD_DIR}/lib${PROJECT_NAME}.so.${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}
             ${SKIA_BUILD_DIR}/lib${PROJECT_NAME}.so.${PROJECT_VERSION}
             DESTINATION
             ${CMAKE_INSTALL_LIBDIR}
         )
-        if(INSTALL_DOCS)
-            install(
-                FILES
-                ${CMAKE_CURRENT_SOURCE_DIR}/README.md
-                ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE
-                DESTINATION
-                "${CMAKE_INSTALL_DOCDIR}-${PROJECT_VERSION}"
-            )
-        endif()
-        if(INSTALL_HEADERS)
-            # TODO: some headers might be missing for macOS/Windows, only tested on Linux
-            set(HEADER_DEST_ROOT "${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}")
-            install(FILES
-                include/config/SkUserConfig.h
-                DESTINATION "${HEADER_DEST_ROOT}/config"
-            )
-            install(FILES
-                include/core/SkBitmap.h
-                include/core/SkBlendMode.h
-                include/core/SkBlurTypes.h
-                include/core/SkCanvas.h
-                include/core/SkClipOp.h
-                include/core/SkColorFilter.h
-                include/core/SkColor.h
-                include/core/SkColorSpace.h
-                include/core/SkContourMeasure.h
-                include/core/SkCoverageMode.h
-                include/core/SkData.h
-                include/core/SkEncodedImageFormat.h
-                include/core/SkFilterQuality.h
-                include/core/SkFlattenable.h
-                include/core/SkFontArguments.h
-                include/core/SkFont.h
-                include/core/SkFontMetrics.h
-                include/core/SkFontParameters.h
-                include/core/SkFontStyle.h
-                include/core/SkFontTypes.h
-                include/core/SkImageEncoder.h
-                include/core/SkImageFilter.h
-                include/core/SkImage.h
-                include/core/SkImageInfo.h
-                include/core/SkM44.h
-                include/core/SkMaskFilter.h
-                include/core/SkMath.h
-                include/core/SkMatrix.h
-                include/core/SkPaint.h
-                include/core/SkPathEffect.h
-                include/core/SkPath.h
-                include/core/SkPathMeasure.h
-                include/core/SkPathTypes.h
-                include/core/SkPicture.h
-                include/core/SkPixelRef.h
-                include/core/SkPixmap.h
-                include/core/SkPoint.h
-                include/core/SkRasterHandleAllocator.h
-                include/core/SkRect.h
-                include/core/SkRefCnt.h
-                include/core/SkRRect.h
-                include/core/SkScalar.h
-                include/core/SkShader.h
-                include/core/SkSize.h
-                include/core/SkStream.h
-                include/core/SkString.h
-                include/core/SkStrokeRec.h
-                include/core/SkSurface.h
-                include/core/SkSurfaceProps.h
-                include/core/SkTileMode.h
-                include/core/SkTypeface.h
-                include/core/SkTypes.h
-                include/core/SkUnPreMultiply.h
-                DESTINATION "${HEADER_DEST_ROOT}/core"
-            )
-            install(FILES
-                include/effects/SkBlurImageFilter.h
-                include/effects/SkDashPathEffect.h
-                include/effects/SkDiscretePathEffect.h
-                include/effects/SkDropShadowImageFilter.h
-                include/effects/SkGradientShader.h
-                include/effects/SkImageFilters.h
-                DESTINATION "${HEADER_DEST_ROOT}/effects"
-            )
-            install(FILES
-                include/gpu/GrBackendSurface.h
-                include/gpu/GrConfig.h
-                include/gpu/GrContext.h
-                include/gpu/GrContextOptions.h
-                include/gpu/GrDriverBugWorkaroundsAutogen.h
-                include/gpu/GrDriverBugWorkarounds.h
-                include/gpu/GrTypes.h
-                DESTINATION "${HEADER_DEST_ROOT}/gpu"
-            )
-            install(FILES
-                include/gpu/gl/GrGLConfig.h
-                include/gpu/gl/GrGLExtensions.h
-                include/gpu/gl/GrGLFunctions.h
-                include/gpu/gl/GrGLInterface.h
-                include/gpu/gl/GrGLTypes.h
-                DESTINATION "${HEADER_DEST_ROOT}/gpu/gl"
-            )
-            install(FILES
-                include/gpu/mock/GrMockTypes.h 
-                DESTINATION "${HEADER_DEST_ROOT}/gpu/mock"
-            )
-            install(FILES
-                include/gpu/vk/GrVkTypes.h
-                include/gpu/vk/GrVkVulkan.h
-                DESTINATION "${HEADER_DEST_ROOT}/gpu/vk"
-            )
-            install(FILES
-                include/pathops/SkPathOps.h 
-                DESTINATION "${HEADER_DEST_ROOT}/pathops"
-            )
-            install(FILES
-                include/private/GrContext_Base.h
-                include/private/GrGLTypesPriv.h
-                include/private/GrImageContext.h
-                include/private/GrRecordingContext.h
-                include/private/GrSharedEnums.h
-                include/private/GrSingleOwner.h
-                include/private/GrTypesPriv.h
-                include/private/GrVkTypesPriv.h
-                include/private/SkDeque.h
-                include/private/SkFixed.h
-                include/private/SkFloatBits.h
-                include/private/SkFloatingPoint.h
-                include/private/SkIDChangeListener.h
-                include/private/SkImageInfoPriv.h
-                include/private/SkMacros.h
-                include/private/SkMalloc.h
-                include/private/SkMutex.h
-                include/private/SkNx.h
-                include/private/SkNx_neon.h
-                include/private/SkNx_sse.h
-                include/private/SkOnce.h
-                include/private/SkPathRef.h
-                include/private/SkSafe32.h
-                include/private/SkSafe_math.h
-                include/private/SkSemaphore.h
-                include/private/SkTArray.h
-                include/private/SkTDArray.h
-                include/private/SkTemplates.h
-                include/private/SkTFitsIn.h
-                include/private/SkThreadAnnotations.h
-                include/private/SkThreadID.h
-                include/private/SkTLogic.h
-                include/private/SkTo.h
-                include/private/SkWeakRefCnt.h
-                DESTINATION "${HEADER_DEST_ROOT}/private"
-            )
-            install(FILES
-                include/third_party/skcms/skcms.h
-                DESTINATION "${HEADER_DEST_ROOT}/third_party/skcms"
-            )
-            install(FILES
-                include/third_party/vulkan/vulkan/vk_platform.h
-                include/third_party/vulkan/vulkan/vulkan_core.h
-                DESTINATION "${HEADER_DEST_ROOT}/third_party/vulkan/vulkan"
-            )
-            install(FILES
-                include/utils/SkBase64.h
-                include/utils/SkParsePath.h
-                include/utils/SkRandom.h
-                include/utils/SkTextUtils.h
-                DESTINATION "${HEADER_DEST_ROOT}/utils"
-            )
-        endif()
     endif()
-endif()
-
-# TODO: fix this workaround
-if(WIN32)
-    add_custom_command(TARGET skialib POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${SKIA_BUILD_DIR}/skia.dll.lib ${SKIA_BUILD_DIR}/skia.lib)
+    if(INSTALL_DOCS)
+        install(
+            FILES
+            ${CMAKE_CURRENT_SOURCE_DIR}/README.md
+            ${CMAKE_CURRENT_SOURCE_DIR}/LICENSE
+            DESTINATION
+            "${CMAKE_INSTALL_DOCDIR}-${PROJECT_VERSION}"
+        )
+    endif()
+    if(INSTALL_HEADERS)
+        # TODO: some headers might be missing for macOS/Windows, only tested on Linux
+        set(HEADER_DEST_ROOT "${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}")
+        install(FILES
+            include/config/SkUserConfig.h
+            DESTINATION "${HEADER_DEST_ROOT}/config"
+        )
+        install(FILES
+            include/core/SkBitmap.h
+            include/core/SkBlendMode.h
+            include/core/SkBlurTypes.h
+            include/core/SkCanvas.h
+            include/core/SkClipOp.h
+            include/core/SkColorFilter.h
+            include/core/SkColor.h
+            include/core/SkColorSpace.h
+            include/core/SkContourMeasure.h
+            include/core/SkCoverageMode.h
+            include/core/SkData.h
+            include/core/SkEncodedImageFormat.h
+            include/core/SkFilterQuality.h
+            include/core/SkFlattenable.h
+            include/core/SkFontArguments.h
+            include/core/SkFont.h
+            include/core/SkFontMetrics.h
+            include/core/SkFontParameters.h
+            include/core/SkFontStyle.h
+            include/core/SkFontTypes.h
+            include/core/SkImageEncoder.h
+            include/core/SkImageFilter.h
+            include/core/SkImage.h
+            include/core/SkImageInfo.h
+            include/core/SkM44.h
+            include/core/SkMaskFilter.h
+            include/core/SkMath.h
+            include/core/SkMatrix.h
+            include/core/SkPaint.h
+            include/core/SkPathEffect.h
+            include/core/SkPath.h
+            include/core/SkPathMeasure.h
+            include/core/SkPathTypes.h
+            include/core/SkPicture.h
+            include/core/SkPixelRef.h
+            include/core/SkPixmap.h
+            include/core/SkPoint.h
+            include/core/SkRasterHandleAllocator.h
+            include/core/SkRect.h
+            include/core/SkRefCnt.h
+            include/core/SkRRect.h
+            include/core/SkScalar.h
+            include/core/SkShader.h
+            include/core/SkSize.h
+            include/core/SkStream.h
+            include/core/SkString.h
+            include/core/SkStrokeRec.h
+            include/core/SkSurface.h
+            include/core/SkSurfaceProps.h
+            include/core/SkTileMode.h
+            include/core/SkTypeface.h
+            include/core/SkTypes.h
+            include/core/SkUnPreMultiply.h
+            DESTINATION "${HEADER_DEST_ROOT}/core"
+        )
+        install(FILES
+            include/effects/SkBlurImageFilter.h
+            include/effects/SkDashPathEffect.h
+            include/effects/SkDiscretePathEffect.h
+            include/effects/SkDropShadowImageFilter.h
+            include/effects/SkGradientShader.h
+            include/effects/SkImageFilters.h
+            DESTINATION "${HEADER_DEST_ROOT}/effects"
+        )
+        install(FILES
+            include/gpu/GrBackendSurface.h
+            include/gpu/GrConfig.h
+            include/gpu/GrContext.h
+            include/gpu/GrContextOptions.h
+            include/gpu/GrDriverBugWorkaroundsAutogen.h
+            include/gpu/GrDriverBugWorkarounds.h
+            include/gpu/GrTypes.h
+            DESTINATION "${HEADER_DEST_ROOT}/gpu"
+        )
+        install(FILES
+            include/gpu/gl/GrGLConfig.h
+            include/gpu/gl/GrGLExtensions.h
+            include/gpu/gl/GrGLFunctions.h
+            include/gpu/gl/GrGLInterface.h
+            include/gpu/gl/GrGLTypes.h
+            DESTINATION "${HEADER_DEST_ROOT}/gpu/gl"
+        )
+        install(FILES
+            include/gpu/mock/GrMockTypes.h
+            DESTINATION "${HEADER_DEST_ROOT}/gpu/mock"
+        )
+        install(FILES
+            include/gpu/vk/GrVkTypes.h
+            include/gpu/vk/GrVkVulkan.h
+            DESTINATION "${HEADER_DEST_ROOT}/gpu/vk"
+        )
+        install(FILES
+            include/pathops/SkPathOps.h
+            DESTINATION "${HEADER_DEST_ROOT}/pathops"
+        )
+        install(FILES
+            include/private/GrContext_Base.h
+            include/private/GrGLTypesPriv.h
+            include/private/GrImageContext.h
+            include/private/GrRecordingContext.h
+            include/private/GrSharedEnums.h
+            include/private/GrSingleOwner.h
+            include/private/GrTypesPriv.h
+            include/private/GrVkTypesPriv.h
+            include/private/SkDeque.h
+            include/private/SkFixed.h
+            include/private/SkFloatBits.h
+            include/private/SkFloatingPoint.h
+            include/private/SkIDChangeListener.h
+            include/private/SkImageInfoPriv.h
+            include/private/SkMacros.h
+            include/private/SkMalloc.h
+            include/private/SkMutex.h
+            include/private/SkNx.h
+            include/private/SkNx_neon.h
+            include/private/SkNx_sse.h
+            include/private/SkOnce.h
+            include/private/SkPathRef.h
+            include/private/SkSafe32.h
+            include/private/SkSafe_math.h
+            include/private/SkSemaphore.h
+            include/private/SkTArray.h
+            include/private/SkTDArray.h
+            include/private/SkTemplates.h
+            include/private/SkTFitsIn.h
+            include/private/SkThreadAnnotations.h
+            include/private/SkThreadID.h
+            include/private/SkTLogic.h
+            include/private/SkTo.h
+            include/private/SkWeakRefCnt.h
+            DESTINATION "${HEADER_DEST_ROOT}/private"
+        )
+        install(FILES
+            include/third_party/skcms/skcms.h
+            DESTINATION "${HEADER_DEST_ROOT}/third_party/skcms"
+        )
+        install(FILES
+            include/third_party/vulkan/vulkan/vk_platform.h
+            include/third_party/vulkan/vulkan/vulkan_core.h
+            DESTINATION "${HEADER_DEST_ROOT}/third_party/vulkan/vulkan"
+        )
+        install(FILES
+            include/utils/SkBase64.h
+            include/utils/SkParsePath.h
+            include/utils/SkRandom.h
+            include/utils/SkTextUtils.h
+            DESTINATION "${HEADER_DEST_ROOT}/utils"
+        )
+    endif()
 endif()
 
 # TODO: needs testing
